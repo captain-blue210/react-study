@@ -8,18 +8,18 @@ const App: FC = () => {
     {
       id: 1,
       name: '独学大全',
-      author: '読書猿'
+      author: '読書猿',
     },
     {
       id: 2,
       name: '数学ガールの秘密ノート／場合の数',
-      author: '結城浩'
+      author: '結城浩',
     },
     {
       id: 3,
       name: 'アジャイルサムライーー達人開発者への道',
-      author: 'Jonathan Ramusson, 西村直人'
-    }
+      author: 'Jonathan Ramusson, 西村直人',
+    },
   ];
 
   return (
@@ -30,6 +30,6 @@ const App: FC = () => {
       <BookList books={books} />
     </div>
   );
-}
+};
 
 export default App;
