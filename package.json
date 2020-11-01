@@ -24,7 +24,7 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "lint": "eslint 'src/**/*.{js,jsx,ts,tsx}'",
-    "lint:fix": "eslint --fix 'src/**/*.{js,jsx,ts,tsx}; cd functions/ && eslint 'src/**/*.{js,ts}''",
+    "lint:fix": "eslint --fix 'src/**/*.{js,jsx,ts,tsx}'; cd functions/ && eslint --fix 'src/**/*.{js,ts}'",
     "postinstall": "typesync"
   },
   "eslintConfig": {
