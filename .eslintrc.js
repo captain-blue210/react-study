@@ -15,6 +15,12 @@ module.exports = {
     'plugin:@typescript-eslint/eslint-recommended',
     'plugin:@typescript-eslint/recommended',
     'plugin:@typescript-eslint/recommended-requiring-type-checking',
+    // eslint-config-prettierの設定。既出のESLintのルール設定と競合する部分を書き換えている
+    'plugin:prettier/recommended',
+    'prettier',
+    'prettier/@typescript-eslint',
+    'prettier/react',
+    'prettier/standard'
   ],
   parser: '@typescript-eslint/parser',
   parserOptions: {
@@ -30,6 +36,7 @@ module.exports = {
       '@typescript-eslint',
       'import',
       'jsx-a11y',
+      'prettier', // 追記
       'react',
       'react-hooks',
   ],
