@@ -3,11 +3,11 @@ import { Item } from 'semantic-ui-react';
 import { Book } from './Book';
 
 type bookProps = {
-    books: Book[];
-}
+  books: Book[];
+};
 
-const BookList: FC<bookProps> = (bookProps) => {
-  const { books } = bookProps;
+const BookList: FC<bookProps> = (props) => {
+  const { books } = props;
 
   return (
     <Item.Group>
