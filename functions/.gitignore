@@ -12,3 +12,5 @@ typings/
 node_modules/
 
 react-study-10047-firebase-adminsdk.json
+
+.runtimeconfig.json
