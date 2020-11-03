@@ -1,110 +1,33 @@
-import { subDays } from 'date-fns';
+/* eslint-disable import/no-dynamic-require */
+/* eslint-disable global-require */
 import admin from 'firebase-admin';
-import * as functions from 'firebase-functions';
-import puppeteer from 'puppeteer';
-import { feedCalendar } from './crewlers/kodansha-calendar';
-import { findOrCreateAuthors } from './firestore-admin/author';
-import { createBook } from './firestore-admin/book';
-import { saveFeedMemo } from './firestore-admin/feed-memo';
-import { findPublisher } from './firestore-admin/publisher';
-import { collectionName } from './services/react-study/contants';
-import { FeedMemo } from './services/react-study/models/feed-memo';
-import { findBookItem } from './services/react-study/rakuten/api';
-import { sleep } from './utils/timer';
-
-const PUPPETEER_OPTIONS = {
-  args: [
-    '--disable-gpu',
-    '--disable-dev-shm-usage',
-    '--disable-setuid-sandbox',
-    '--no-first-run',
-    '--no-sandbox',
-    '--no-zygote',
-    '--single-process',
-  ],
-  headless: true,
-};
-
-const RAKUTEN_APP_ID = functions.config().rakuten.app_id;
+import { forEach } from 'lodash';
+import { isDevelopment } from './utils/env';
 
 admin.initializeApp();
 
-export const fetchCalendar = functions
-  .region('asia-northeast1')
-  .runWith({
-    timeoutSeconds: 300,
-    memory: '2GB',
-  })
-  .pubsub.schedule('0 2 1,10,20 * *')
-  .timeZone('Asia/Tokyo')
-  .onRun(async () => {
-    const browser = await puppeteer.launch(PUPPETEER_OPTIONS);
-    const page = await browser.newPage();
-    const db = admin.firestore();
+const functionMap = {
+  fetchCalendar: './fetch-calendar',
+  registerBooks: './register-books',
+};
 
-    const memos = await feedCalendar(page);
-    const fetchCount = await saveFeedMemo(db, memos, 'kodansha');
+const devFunctionMap = {
+  publishers: './publishers.ts',
+};
 
-    await browser.close();
-    console.log(`Fetched Kodansha calendar. Wrote ${fetchCount} memos.`);
-  });
-
-export const publishers = functions
-  .region('asia-northeast1')
-  .https.onRequest(async (req, res) => {
-    const snap = await admin
-      .firestore()
-      .collection(collectionName.publishers)
-      .get();
-    const data = snap.docs.map((doc) => doc.data());
-    res.send({ data });
-  });
-
-export const registerBooks = functions
-  .region('asia-northeast1')
-  .runWith({
-    timeoutSeconds: 500,
-    memory: '1GB',
-  })
-  .pubsub.schedule('5,10,15 2 1,10,20 * *')
-  .timeZone('Asia/Tokyo')
-  .onRun(async () => {
-    const db = admin.firestore();
-    const yesterday = subDays(new Date(), 1);
-    const snap = await db
-      .collection(collectionName.feedMemos)
-      .where('isbn', '==', null)
-      .where('fetchedAt', '<', yesterday)
-      .limit(200)
-      .get();
-    let count = 0;
-
-    for await (const doc of snap.docs) {
-      const memo = doc.data() as FeedMemo;
-      const title = memo.title || '';
-      const publisherName = memo.publisher || '';
-
-      const bookItem = await findBookItem(
-        { title, publisherName },
-        RAKUTEN_APP_ID,
-      );
-
-      if (bookItem) {
-        const authors = await findOrCreateAuthors(db, bookItem);
-        const publisher = await findPublisher(db, 'kodansha');
-        const book = await createBook(db, memo, bookItem, authors, publisher);
-        await doc.ref.update({
-          isbn: book.isbn,
-          fetchedAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
-        count += 1;
-      } else {
-        await doc.ref.update({
-          fetchedAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
-      }
-      await sleep(1000);
+const loadFunctions = (fnMap: typeof functionMap) => {
+  forEach(fnMap, (path, functionName) => {
+    if (
+      !process.env.FUNCTION_TARGET ||
+      process.env.FUNCTION_TARGET === functionName
+    ) {
+      module.exports[functionName] = require(path);
     }
-
-    console.log(`Registered ${count} books.`);
   });
+};
+
+const fnMap = isDevelopment()
+  ? { ...functionMap, ...devFunctionMap }
+  : functionMap;
+
+loadFunctions(fnMap);
