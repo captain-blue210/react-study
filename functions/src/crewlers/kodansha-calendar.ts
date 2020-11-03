@@ -21,7 +21,7 @@ export const feedCalendar = async (page: puppeteer.Page) => {
       memo.title = await item.$eval('.tit', (e) => e.textContent);
       const author = await item.$eval('.name', (e) => e.textContent);
       if (author) memo.author = author.replace(/\s/g, ' ').replace(/, /g, ',');
-      memo.publisher = 'kodansha';
+      memo.publisher = '講談社';
 
       memos.push(memo);
     }

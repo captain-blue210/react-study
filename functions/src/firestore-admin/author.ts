@@ -1,7 +1,7 @@
 import admin from 'firebase-admin';
+import { BookItem } from '../services/rakuten/models/book-item';
 import { collectionName } from '../services/react-study/contants';
 import { Author, blankAuthor } from '../services/react-study/models/author';
-import { BookItem } from '../services/react-study/rakuten/models/book-item';
 import { normalize, uniform } from '../utils/text-processor';
 import { addCounter } from './record-counter';
 
